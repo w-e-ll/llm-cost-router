@@ -5,7 +5,7 @@
 [![Watch the demo on YouTube](https://img.shields.io/badge/YouTube-Watch_the_demo-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/V6WkuI0yDXc)
 [![Connect on LinkedIn](https://img.shields.io/badge/LinkedIn-Valentin_Sheboldaev-0A66C2?style=for-the-badge)](https://www.linkedin.com/in/w-e-ll/)
 
-**▶ [Watch the full project walkthrough · Sunday AI Builds #01](https://youtu.be/V6Wkul0yDXc)**  
+**▶ [Watch the full project walkthrough · Sunday AI Builds #01](https://youtu.be/V6WkuI0yDXc)**  
 **Contact:** [Valentin Sheboldaev · LinkedIn](https://www.linkedin.com/in/w-e-ll/)
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
