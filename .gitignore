@@ -1,0 +1,49 @@
+# Local environments and credentials
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Python bytecode and tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.hypothesis/
+.uv-cache/
+
+# Test and coverage reports
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+junit.xml
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Local databases, run snapshots, logs and backups
+/var/
+*.log
+*.log.*
+
+# IDE and operating-system files
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary editor files
+*.swp
+*.swo
+*~
+~$*
+
+# Keep source, migrations, uv.lock, documentation and presentation assets tracked.

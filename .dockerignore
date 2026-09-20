@@ -1,0 +1,13 @@
+**/.env
+**/.env.*
+!.env.example
+.git
+.idea
+.venv
+var
+**/__pycache__
+.pytest_cache
+.ruff_cache
+*.log
+work
+outputs

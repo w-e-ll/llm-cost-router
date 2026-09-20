@@ -1,0 +1,98 @@
+name: llm-cost-router
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+x-app: &app
+  build:
+    context: .
+    target: runtime
+  image: llm-cost-router:0.2.0
+  init: true
+  logging: *logging
+x-db-env: &db-env
+  DATABASE_URL: postgresql+psycopg://llm_router:${POSTGRES_APP_PASSWORD:?Run scripts/docker.ps1 Setup first}@db:5432/llm_cost_router
+services:
+  db:
+    image: postgres:18.6-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Run scripts/docker.ps1 Setup first}
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD:?Run scripts/docker.ps1 Setup first}
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/10-router.sh:ro
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5434}:5432"
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d postgres && psql -U postgres -d postgres -Atc \"SELECT 1 FROM pg_database WHERE datname='llm_cost_router_test'\" | grep -q 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: *logging
+  migrate:
+    <<: *app
+    environment: *db-env
+    command: [alembic, upgrade, head]
+    depends_on:
+      db:
+        condition: service_healthy
+  api:
+    <<: *app
+    restart: unless-stopped
+    environment:
+      <<: *db-env
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: ${LOG_FORMAT:-text}
+      LOG_FILE: /app/var/logs/api.log
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    volumes:
+      - ./var/logs:/app/var/logs
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/db', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+  ui:
+    <<: *app
+    restart: unless-stopped
+    command: [streamlit, run, llm_cost_router/ui/app.py, --server.address=0.0.0.0, --server.port=8501, --server.headless=true, --browser.gatherUsageStats=false]
+    environment:
+      LLM_ROUTER_API_URL: http://api:8000
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: ${LOG_FORMAT:-text}
+      LOG_FILE: /app/var/logs/ui.log
+    ports:
+      - "127.0.0.1:${UI_PORT:-8501}:8501"
+    volumes:
+      - ./var/logs:/app/var/logs
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+  tests:
+    build:
+      context: .
+      target: test
+    profiles: [test]
+    environment:
+      DATABASE_URL: postgresql+psycopg://llm_router:${POSTGRES_APP_PASSWORD}@db:5432/llm_cost_router_test
+      TEST_DATABASE_URL: postgresql+psycopg://llm_router:${POSTGRES_APP_PASSWORD}@db:5432/llm_cost_router_test
+      LOG_LEVEL: WARNING
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logging
+volumes:
+  postgres_data:

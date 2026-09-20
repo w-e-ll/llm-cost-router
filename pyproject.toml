@@ -1,0 +1,35 @@
+[project]
+name = "llm-cost-router"
+version = "0.2.0"
+description = "Measured LLM routing experiments and PostgreSQL-backed cost planning"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.34,<1",
+    "streamlit>=1.42,<2",
+    "httpx>=0.28,<1",
+    "pydantic>=2.10,<3",
+    "sqlalchemy>=2.0,<2.1",
+    "psycopg[binary]>=3.2,<4",
+    "alembic>=1.16,<2",
+    "python-dotenv>=1.1,<2",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3,<10", "ruff>=0.11,<1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = ["postgres: integration tests against TEST_DATABASE_URL"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = ["var", ".venv"]
+
+[tool.ruff.lint]
+# Docker BuildKit preserves executable bits from Windows/host files. Python
+# modules are imported, not launched directly, so EXE002 is not actionable.
+ignore = ["EXE002"]
